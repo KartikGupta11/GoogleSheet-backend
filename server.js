@@ -1,6 +1,7 @@
 const { google } = require("googleapis");
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -12,7 +13,7 @@ const SPREADSHEET_ID = "1sDjVSSSGZWzCFjO0cLx7q77--M_d3t4wTzT6s17grn8";
 const RANGE = "Sheet1!A:C";
 
 // Load credentials from the JSON key file downloaded from Google Developers Console
-const credentials = require("./credentials.json");
+const credentials = process.env;
 
 const auth = new google.auth.GoogleAuth({
   credentials,
@@ -21,13 +22,14 @@ const auth = new google.auth.GoogleAuth({
 
 app.get("/api/data", async (req, res) => {
   try {
+   
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: RANGE,
       auth,
     });
     const rows = response.data.values;
-    console.log(response.data);
+    
 
     res.json(rows);
   } catch (error) {
@@ -39,19 +41,18 @@ app.get("/api/data", async (req, res) => {
 app.post("/api/createRow", async (req, res) => {
   try {
     const requestBody = req.body;
-    console.log("Hello", req.body);
     const auth = new google.auth.GoogleAuth({
       credentials,
       scopes: "https://www.googleapis.com/auth/spreadsheets",
     });
 
-    // Obtain the JWT client
+    // Get JWT client
     const client = await auth.getClient();
 
-    // Create the sheets API instance
+    // Create API instance
     const sheets = google.sheets({ version: "v4", auth: client });
 
-    // Define the request body for appending a row
+    
     const request = {
       spreadsheetId: SPREADSHEET_ID,
       range: RANGE,
@@ -59,10 +60,10 @@ app.post("/api/createRow", async (req, res) => {
       resource: { values: [Object.values(requestBody)] },
     };
 
-    // Append the row to the spreadsheet
+    // Add the row 
     const response = await sheets.spreadsheets.values.append(request);
-    console.log(response);
-    // Send a success response
+    
+    
     res.status(201).json({ message: "Row created successfully" });
   } catch (error) {
     console.error("Error creating row:", error);
